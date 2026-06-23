@@ -1,12 +1,19 @@
 require('dotenv').config();
 
+const fs = require('fs');
+const path = require('path');
 const app = require('./src/app');
 const { initDb } = require('./src/config/db');
 
 const PORT = process.env.PORT || 3000;
 
-// Cria as tabelas (se nao existirem) e popula os dados iniciais ANTES de subir o servidor.
-// Assim o professor so precisa: npm install -> npm start, e ja tem dados pra testar.
+// Apaga o banco velho para recriar com dados atualizados
+const dbPath = path.join(__dirname, 'database.sqlite');
+if (fs.existsSync(dbPath)) {
+  fs.unlinkSync(dbPath);
+  console.log('Banco antigo removido — recriando...');
+}
+
 initDb();
 
 app.listen(PORT, () => {
