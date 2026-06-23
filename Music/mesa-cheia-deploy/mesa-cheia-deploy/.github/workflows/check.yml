@@ -1,0 +1,36 @@
+name: Verificar sintaxe
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Verificar sintaxe dos arquivos JS do servidor
+        run: |
+          find src -name "*.js" | while read f; do
+            node --check "$f" && echo "OK $f"
+          done
+          node --check server.js && echo "OK server.js"
+
+      - name: Testar health check
+        run: |
+          node server.js &
+          sleep 4
+          curl -f http://localhost:3000/health && echo "Health OK"
+          kill %1

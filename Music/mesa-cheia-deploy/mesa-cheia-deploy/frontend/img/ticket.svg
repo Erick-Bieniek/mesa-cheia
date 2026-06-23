@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500" role="img" aria-label="Ticket to Ride">
+  <rect width="500" height="500" fill="#B5611A"/>
+  <polygon points="517.2,65.0 517.2,235.0 370.0,320.0 222.8,235.0 222.8,65.0 370.0,-20.0" fill="#D9842F" opacity="0.55"/>
+  <polygon points="227.9,75.0 227.9,165.0 150.0,210.0 72.1,165.0 72.1,75.0 150.0,30.0" fill="#D9842F" opacity="0.4"/>
+  <polygon points="523.9,340.0 523.9,460.0 420.0,520.0 316.1,460.0 316.1,340.0 420.0,280.0" fill="#D9842F" opacity="0.35"/>
+  <circle cx="250" cy="190" r="14" fill="#fff" opacity="0.9"/>
+  <circle cx="295" cy="160" r="9" fill="#fff" opacity="0.7"/>
+  <circle cx="210" cy="160" r="9" fill="#fff" opacity="0.7"/>
+  <rect x="40" y="44" width="150" height="34" rx="4" fill="#15140F"/>
+  <text x="58" y="67" font-size="18" font-weight="800" fill="#fff" font-family="Arial, sans-serif" letter-spacing="1">MESA CHEIA</text>
+  <text x="40" y="360" font-size="46" font-weight="800" fill="#fff" font-family="Arial, sans-serif">Ticket to</text>
+       <text x="40" y="412" font-size="46" font-weight="800" fill="#fff" font-family="Arial, sans-serif">Ride</text>
+  <text x="40" y="452" font-size="20" font-weight="600" fill="#fff" opacity="0.85" font-family="Arial, sans-serif">Familia</text>
+</svg>
