@@ -1,0 +1,308 @@
+openapi: 3.0.3
+info:
+  title: Mesa Cheia API
+  description: >
+    API REST de e-commerce de board games. TDE da disciplina de Programacao Web
+    (URI Erechim, Prof. Douglas Tagliari). Fluxo: Home -> Busca -> Detalhe -> Carrinho.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Servidor local
+
+tags:
+  - name: Saude
+  - name: Produtos
+  - name: Busca
+  - name: Carrinho
+  - name: Autenticacao
+
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+      description: "Email:senha de um usuario com isAdmin=1 (ex.: admin@mesacheia.com:admin123)"
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token retornado por POST /login
+  schemas:
+    Product:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: Catan }
+        slug: { type: string, example: catan }
+        category: { type: string, example: Estrategia }
+        price: { type: number, example: 289.90 }
+        oldPrice: { type: number, nullable: true, example: 349.90 }
+        description: { type: string, example: O classico de troca de recursos. }
+        image: { type: string, example: /img/catan.jpg }
+        stock: { type: integer, example: 12 }
+        players: { type: string, example: "3-4" }
+        playtime: { type: string, example: "60-90 min" }
+        age: { type: string, example: "10+" }
+        weight: { type: number, example: 2.3 }
+        designer: { type: string, example: Klaus Teuber }
+        mechanic: { type: string, example: Gestao de recursos }
+    CartSummary:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId: { type: integer, example: 1 }
+              name: { type: string, example: Catan }
+              price: { type: number, example: 289.90 }
+              qty: { type: integer, example: 2 }
+              image: { type: string, example: /img/catan.jpg }
+              lineTotal: { type: number, example: 579.80 }
+        subtotal: { type: number, example: 579.80 }
+        freight: { type: number, example: 0 }
+        discount: { type: number, example: 57.98 }
+        total: { type: number, example: 521.82 }
+        coupon: { type: string, nullable: true, example: URI10 }
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            status: { type: integer, example: 404 }
+            message: { type: string, example: Produto nao encontrado. }
+
+paths:
+  /health:
+    get:
+      tags: [Saude]
+      summary: Verifica se a API esta no ar
+      responses:
+        '200':
+          description: Servico saudavel
+          content:
+            application/json:
+              example: { status: ok, service: mesa-cheia-api, uptime: 12.3 }
+
+  /featured:
+    get:
+      tags: [Produtos]
+      summary: Lista os 4 produtos em destaque (home)
+      responses:
+        '200':
+          description: Lista de destaques
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Product' }
+
+  /product/{id}:
+    get:
+      tags: [Produtos]
+      summary: Detalhe de um produto
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Produto encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '404':
+          description: Produto nao encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    delete:
+      tags: [Produtos]
+      summary: Deleta um produto (somente admin)
+      security: [{ basicAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Produto deletado }
+        '401': { description: Nao autorizado }
+        '404': { description: Produto nao encontrado }
+
+  /products:
+    post:
+      tags: [Produtos]
+      summary: Cadastra um produto (somente admin)
+      security: [{ basicAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              name: Everdell
+              category: Estrategia
+              price: 399.90
+              oldPrice: 449.90
+              description: Construa uma cidade de criaturas da floresta.
+              image: /img/everdell.jpg
+              stock: 7
+              players: "1-4"
+              playtime: "40-80 min"
+              age: "13+"
+              weight: 2.8
+              designer: James A. Wilson
+              mechanic: Worker placement
+      responses:
+        '201':
+          description: Produto criado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '400': { description: Dados invalidos }
+        '401': { description: Nao autorizado }
+
+  /search:
+    get:
+      tags: [Busca]
+      summary: Busca produtos com filtros e paginacao
+      parameters:
+        - { in: query, name: query, schema: { type: string }, example: catan }
+        - { in: query, name: cat, schema: { type: string }, example: Estrategia }
+        - { in: query, name: page, schema: { type: integer, default: 1 } }
+        - { in: query, name: limit, schema: { type: integer, default: 12 } }
+      responses:
+        '200':
+          description: Resultado paginado
+          content:
+            application/json:
+              example:
+                items: []
+                page: 1
+                limit: 12
+                total: 12
+                totalPages: 1
+        '400': { description: Parametros invalidos }
+
+  /categories:
+    get:
+      tags: [Busca]
+      summary: Lista categorias distintas
+      responses:
+        '200':
+          description: Categorias
+          content:
+            application/json:
+              example: { categories: [Estrategia, Familia, Party, Cooperativo] }
+
+  /cart:
+    post:
+      tags: [Carrinho]
+      summary: Calcula o resumo do carrinho (subtotal, frete, desconto, total)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              items:
+                - { productId: 1, qty: 2 }
+                - { productId: 5, qty: 1 }
+              cupomCode: URI10
+      responses:
+        '200':
+          description: Resumo calculado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CartSummary' }
+        '400': { description: Itens ou cupom invalidos }
+    get:
+      tags: [Carrinho]
+      summary: Carrinho persistido do usuario (bonus)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Resumo do carrinho salvo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CartSummary' }
+        '401': { description: Token ausente/invalido }
+
+  /cart/items:
+    put:
+      tags: [Carrinho]
+      summary: Adiciona/atualiza item no carrinho do usuario (bonus)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: { productId: 1, qty: 3 }
+      responses:
+        '200': { description: Carrinho atualizado }
+        '400': { description: Dados invalidos }
+        '401': { description: Token ausente/invalido }
+        '404': { description: Produto inexistente }
+
+  /cart/items/{productId}:
+    put:
+      tags: [Carrinho]
+      summary: Altera a quantidade de um item (bonus)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: productId, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: { qty: 5 }
+      responses:
+        '200': { description: Quantidade alterada }
+        '404': { description: Item nao esta no carrinho }
+    delete:
+      tags: [Carrinho]
+      summary: Remove um item do carrinho do usuario (bonus)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: productId, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Item removido }
+        '404': { description: Item nao esta no carrinho }
+
+  /register:
+    post:
+      tags: [Autenticacao]
+      summary: Cadastra um cliente (bonus)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: { name: Maria, email: maria@email.com, password: senha123 }
+      responses:
+        '201': { description: Usuario criado }
+        '400': { description: Dados invalidos }
+        '409': { description: Email ja cadastrado }
+
+  /login:
+    post:
+      tags: [Autenticacao]
+      summary: Login, retorna token JWT (bonus)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: { email: cliente@mesacheia.com, password: cliente123 }
+      responses:
+        '200':
+          description: Autenticado
+          content:
+            application/json:
+              example:
+                token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                user: { id: 2, name: Erick Cliente, email: cliente@mesacheia.com, isAdmin: 0 }
+        '401': { description: Credenciais invalidas }
