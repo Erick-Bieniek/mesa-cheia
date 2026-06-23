@@ -14,7 +14,7 @@ if (fs.existsSync(dbPath)) {
   console.log('Banco antigo removido — recriando...');
 }
 
-initDb();
+const fs = require(" fs\); const dbP = require(\path\).join(__dirname, \database.sqlite\); if(fs.existsSync(dbP)){fs.unlinkSync(dbP); console.log(\Banco removido\);} initDb();
 
 app.listen(PORT, () => {
   console.log(`Mesa Cheia API rodando em http://localhost:${PORT}`);
